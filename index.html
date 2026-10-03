@@ -191,6 +191,19 @@ a.link{color:var(--blue);font-weight:600;text-underline-offset:3px;overflow-wrap
 #view-request > .side{background:var(--surface);border-radius:10px;box-shadow:var(--shadow);padding:18px 18px 20px}
 #view-request > .side .mini{box-shadow:none;border:1px solid var(--line)}
 
+/* ---------- shows & crew ---------- */
+.setup{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;align-items:start}
+.list{display:flex;flex-direction:column}
+.li{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.li:first-child{border-top:0}
+.li .grow{flex:1 1 180px;min-width:0}
+.li .t{font-weight:700;color:var(--navy);overflow-wrap:anywhere}
+.li .inp.sm{flex:1 1 118px;width:auto;font-size:16px}
+.li .inp.sm:first-child{flex:2 1 150px}
+.li .inp.sm.iata{flex:0 0 5.4em}
+.li .inp.sm:nth-child(3){flex:1 1 96px}
+.li .btn{flex:none}
+
 /* ---------- detail dialog ---------- */
 dialog{border:0;border-radius:12px;padding:0;background:var(--surface);color:var(--ink);width:min(720px,calc(100% - 24px));max-height:calc(100% - 32px);box-shadow:0 20px 60px rgba(8,24,44,.35)}
 dialog::backdrop{background:var(--scrim)}
@@ -206,7 +219,7 @@ dialog::backdrop{background:var(--scrim)}
 .toast{position:fixed;left:50%;bottom:0;transform:translateX(-50%);margin-bottom:calc(18px + env(safe-area-inset-bottom, 0px));max-width:calc(100% - 32px);padding:12px 18px;border-radius:8px;background:var(--navy);color:#fff;font-weight:600;z-index:50;box-shadow:var(--shadow)}
 
 @media (max-width:860px){
-  .cols{grid-template-columns:minmax(0,1fr)}
+  .cols,.setup{grid-template-columns:minmax(0,1fr)}
 }
 @media (max-width:760px){
   .pass{grid-template-columns:minmax(0,1fr)}
@@ -265,6 +278,7 @@ dialog::backdrop{background:var(--scrim)}
     <nav class="tabs" aria-label="Sections">
       <button type="button" class="tab" id="tab-request" data-tab="request">Request a flight</button>
       <button type="button" class="tab" id="tab-board" data-tab="board">Board</button>
+      <button type="button" class="tab" id="tab-setup" data-tab="setup" hidden>Shows &amp; crew</button>
     </nav>
 
     <p class="notice" id="notice" hidden></p>
@@ -382,7 +396,7 @@ dialog::backdrop{background:var(--scrim)}
           <input id="tm-crew" class="inp" readonly>
           <button type="button" class="btn small" data-copy="tm-crew">Copy crew link</button>
         </div>
-        <p class="help">Add shows and edit the crew list in the Sheet (Shows and Crew tabs). Changes show up here within a minute.</p>
+        <p class="help">Add shows and travelers under Shows &amp; crew. Editing the Sheet works too.</p>
       </div>
       <div class="tools">
         <div class="tally" id="tally"></div>
@@ -394,6 +408,40 @@ dialog::backdrop{background:var(--scrim)}
         </div>
       </div>
       <div id="board-body"><p class="empty">Loading the board. Requests show up here with the traveler's link, screenshots and price.</p></div>
+    </section>
+
+    <!-- ======== SHOWS & CREW (tour desk only) ======== -->
+    <section id="view-setup" hidden class="setup">
+      <div class="panel">
+        <div class="phead">
+          <h2>Crew</h2>
+          <p class="lede">Add a traveler here and the name shows up under Who's flying. To change someone, edit the name, home airport or note in its box. It saves when you leave the box.</p>
+        </div>
+        <form id="crew-form" class="grid2" novalidate>
+          <div class="field"><label for="c-name">Name</label><input id="c-name" class="inp" maxlength="80" autocomplete="off"></div>
+          <div class="field"><label for="c-home">Home airport</label><input id="c-home" class="inp iata" maxlength="3" placeholder="BNA" autocomplete="off"></div>
+          <div class="field wide"><label for="c-note">Booking note</label><input id="c-note" class="inp" maxlength="120" placeholder="Airline or seat rules to remember" autocomplete="off"></div>
+          <div class="field wide"><button type="submit" class="btn primary" id="c-add" style="align-self:flex-start">Add traveler</button></div>
+        </form>
+        <h3>On the crew list</h3>
+        <div class="list" id="crew-list"></div>
+      </div>
+      <div class="panel">
+        <div class="phead">
+          <h2>Shows</h2>
+          <p class="lede">Travelers pick from this list when they send a request. The arrive-by note shows on their form.</p>
+        </div>
+        <form id="show-form" class="grid2" novalidate>
+          <div class="field"><label for="s-date">Show date</label><input id="s-date" class="inp" type="date"></div>
+          <div class="field"><label for="s-airport">Airport code</label><input id="s-airport" class="inp iata" maxlength="3" placeholder="DEN" autocomplete="off"></div>
+          <div class="field"><label for="s-city">City</label><input id="s-city" class="inp" maxlength="60" placeholder="Denver, CO" autocomplete="off"></div>
+          <div class="field"><label for="s-venue">Venue</label><input id="s-venue" class="inp" maxlength="80" placeholder="Paramount Theatre" autocomplete="off"></div>
+          <div class="field wide"><label for="s-arrive">Arrive-by note</label><input id="s-arrive" class="inp" maxlength="120" placeholder="Land by 1:00 PM on show day. Load-in is 2:00 PM." autocomplete="off"></div>
+          <div class="field wide"><button type="submit" class="btn primary" id="s-add" style="align-self:flex-start">Add show</button></div>
+        </form>
+        <h3>On the show list</h3>
+        <div class="list" id="show-list"></div>
+      </div>
     </section>
   </div>
 </div>
@@ -584,9 +632,9 @@ function byDate(a, b){ return String(a.date || '').localeCompare(String(b.date |
 
 /* ---------- shell ---------- */
 function setTab(tab, fromUser){
-  S.tab = tab === 'board' ? 'board' : 'request';
+  S.tab = tab === 'board' ? 'board' : (tab === 'setup' && S.isTM) ? 'setup' : 'request';
   if (fromUser) S.touched = true;
-  ['request','board'].forEach(function(t){
+  ['request','board','setup'].forEach(function(t){
     $('view-' + t).hidden = t !== S.tab;
     var b = $('tab-' + t);
     if (t === S.tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
@@ -608,6 +656,8 @@ function renderShell(){
   var n = $('notice'), msg = S.conn === 'offline' ? 'This is a preview with sample data. Nothing here is saved.' : '';
   n.hidden = !msg; n.textContent = msg;
   var bar = $('tmbar'), L = S.links;
+  $('tab-setup').hidden = !S.isTM;
+  if (S.tab === 'setup' && !S.isTM) setTab('board');
   bar.hidden = !(S.isTM && L);
   if (S.isTM && L){
     var sheet = safeUrl(L.sheet), folder = safeUrl(L.folder);
@@ -1004,13 +1054,82 @@ function deskSection(r, st){
   return h('div', {class:'desk'}, h('h3', {text:'Tour desk'}), bits);
 }
 
+/* ---------- shows & crew (tour desk only) ---------- */
+var WHY = {
+  forbidden:'This needs the tour desk link.',
+  duplicate:'That one is already on the list.',
+  name:'Enter a name.',
+  fields:'A show needs a date and a city.',
+  missing:'That traveler was changed somewhere else. Reload the page.'
+};
+function op(fn, a, b, okMsg){
+  return call(fn, auth(), a, b === undefined ? null : b).then(function(res){
+    if (!res || !res.ok){ var e = new Error('refused'); e.why = (res && WHY[res.reason]) || 'That did not save. Try again.'; throw e; }
+    if (okMsg) toast(okMsg);
+    return refresh();
+  });
+}
+function opFail(e){ toast((e && e.why) || 'That did not go through. Check your connection and try again.'); }
+function renderSetup(){
+  if (!S.isTM) return;
+  var sl = $('show-list'), cl = $('crew-list');
+  if (!S.shows.length) sl.replaceChildren(h('p', {class:'help', text:'No shows yet. Add the first one below and it appears in the request form.'}));
+  else sl.replaceChildren.apply(sl, S.shows.slice().sort(byDate).map(function(s){
+    return h('div', {class:'li'},
+      h('div', {class:'grow'}, h('div', {class:'t', text:showLabel(s)}),
+        h('div', {class:'help', text:[s.venue, s.airport, s.arriveBy].filter(Boolean).join(' \u00b7 ')})),
+      confirmBtn('Remove', 'Tap again to remove', function(){ return op('api_showdel', showKey(s), null, 'Show removed.'); }));
+  }));
+  if (document.activeElement && cl.contains(document.activeElement)) return; // never rebuild a row someone is typing in
+  if (!S.crew.length){ cl.replaceChildren(h('p', {class:'help', text:'No travelers yet. Add the first one below.'})); return; }
+  cl.replaceChildren.apply(cl, S.crew.map(function(c, i){
+    var cur = {name:c.name, home:c.home || '', note:c.note || ''};
+    var name = h('input', {id:'cl-name-' + i, class:'inp sm', maxlength:'80', value:cur.name, autocomplete:'off', 'aria-label':'Name of traveler ' + (i + 1)});
+    var home = h('input', {id:'cl-home-' + i, class:'inp sm iata', maxlength:'3', value:cur.home, placeholder:'---', autocomplete:'off', 'aria-label':'Home airport for ' + c.name});
+    var note = h('input', {id:'cl-note-' + i, class:'inp sm', maxlength:'120', value:cur.note, placeholder:'Booking note', autocomplete:'off', 'aria-label':'Booking note for ' + c.name});
+    function save(){
+      var next = {name:name.value.trim(), home:code(home.value), note:note.value.trim()};
+      home.value = next.home;
+      if (!next.name){ name.value = cur.name; return; }
+      if (next.name === cur.name && next.home === cur.home && next.note === cur.note) return;
+      var was = cur.name;
+      op('api_crewsave', was, next, 'Saved.').then(function(){
+        if (S.me === was && next.name !== was){ S.me = next.name; LS.set('fd.me', next.name); }
+        cur = next;
+      }).catch(function(e){ name.value = cur.name; home.value = cur.home; note.value = cur.note; opFail(e); });
+    }
+    [name, home, note].forEach(function(x){ x.addEventListener('change', save); });
+    return h('div', {class:'li'}, name, home, note,
+      confirmBtn('Remove', 'Tap again to remove', function(){ return op('api_crewdel', cur.name, null, 'Traveler removed.'); }));
+  }));
+}
+function addCrew(ev){
+  ev.preventDefault();
+  var name = $('c-name').value.trim(), btn = $('c-add');
+  if (!name){ toast(WHY.name); return; }
+  btn.disabled = true;
+  op('api_crewsave', '', {name:name, home:code($('c-home').value), note:$('c-note').value.trim()}, name + ' added.').then(function(){
+    ['c-name','c-home','c-note'].forEach(function(id){ $(id).value = ''; });
+    $('c-name').focus();
+  }).catch(opFail).then(function(){ btn.disabled = false; renderSetup(); });
+}
+function addShow(ev){
+  ev.preventDefault();
+  var date = $('s-date').value, city = $('s-city').value.trim(), btn = $('s-add');
+  if (!date || !city){ toast(WHY.fields); return; }
+  btn.disabled = true;
+  op('api_showadd', {date:date, city:city, venue:$('s-venue').value.trim(), airport:code($('s-airport').value), arriveBy:$('s-arrive').value.trim()}, null, 'Show added.').then(function(){
+    ['s-date','s-city','s-venue','s-airport','s-arrive'].forEach(function(id){ $(id).value = ''; });
+  }).catch(opFail).then(function(){ btn.disabled = false; });
+}
+
 /* ---------- render + data ---------- */
 var queued = false;
 function renderAll(){
   if (queued) return; queued = true;
   requestAnimationFrame(function(){
     queued = false;
-    renderShell(); renderCrewChips(); renderShowOptions(); renderMine(); renderBoard();
+    renderShell(); renderCrewChips(); renderShowOptions(); renderMine(); renderBoard(); renderSetup();
   });
 }
 function refresh(){
@@ -1036,7 +1155,9 @@ function start(){
   $('req-form').addEventListener('submit', submitForm);
   $('req-form').addEventListener('input', function(){ S.touched = true; $('f-error').hidden = true; });
   $('f-show').addEventListener('change', renderShowHint);
-  ['f-from','f-to'].forEach(function(id){ $(id).addEventListener('input', function(e){ e.target.value = code(e.target.value); }); });
+  ['f-from','f-to','c-home','s-airport'].forEach(function(id){ $(id).addEventListener('input', function(e){ e.target.value = code(e.target.value); }); });
+  $('crew-form').addEventListener('submit', addCrew);
+  $('show-form').addEventListener('submit', addShow);
   document.querySelectorAll('input[name="trip"]').forEach(function(x){ x.addEventListener('change', function(){ $('f-return-wrap').hidden = $('f-trip-oneway').checked; }); });
   $('f-files').addEventListener('change', function(e){ addFiles(e.target.files); e.target.value = ''; });
   var drop = $('drop');

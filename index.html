@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<base target="_blank">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Flight Desk</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+img{max-width:100%}
+[hidden]{display:none!important}
+/* Layout: one working column. A narrow request form for the travelers, and a wide board of
+   boarding-pass cards grouped by show for the tour desk. The perforated fare stub is the only flourish. */
+:root{
+  --bg:#ECEFF3; --surface:#FFFFFF; --surface-2:#F4F6F9;
+  --ink:#14202E; --ink-2:#465465; --ink-3:#5E6B7B;
+  --line:#D3DAE2; --line-strong:#B4BFCC;
+  --accent:#1D4ED8; --accent-ink:#FFFFFF; --accent-soft:#E2E9FC;
+  --wait:#8A5300; --wait-bg:#FBEBCB;
+  --review:#1D4ED8; --review-bg:#E2E9FC;
+  --alt:#0B6477; --alt-bg:#D9F0F4;
+  --ok:#17693C; --ok-bg:#DCF2E4;
+  --bad:#A8231B; --bad-bg:#FBE3E0;
+  --scrim:rgba(14,22,32,.55);
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E141C; --surface:#17202B; --surface-2:#1E2936;
+    --ink:#E8EDF2; --ink-2:#AEB9C6; --ink-3:#8D9AA9;
+    --line:#2A3746; --line-strong:#3D4D60;
+    --accent:#86A8FF; --accent-ink:#0B1220; --accent-soft:#1B2B4C;
+    --wait:#F2BC57; --wait-bg:#3A2C0E;
+    --review:#9AB6FF; --review-bg:#1B2B4C;
+    --alt:#63D0E0; --alt-bg:#0F3138;
+    --ok:#74D8A0; --ok-bg:#12331F;
+    --bad:#FF9288; --bad-bg:#3A1512;
+    --scrim:rgba(0,0,0,.66);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E141C; --surface:#17202B; --surface-2:#1E2936;
+  --ink:#E8EDF2; --ink-2:#AEB9C6; --ink-3:#8D9AA9;
+  --line:#2A3746; --line-strong:#3D4D60;
+  --accent:#86A8FF; --accent-ink:#0B1220; --accent-soft:#1B2B4C;
+  --wait:#F2BC57; --wait-bg:#3A2C0E;
+  --review:#9AB6FF; --review-bg:#1B2B4C;
+  --alt:#63D0E0; --alt-bg:#0F3138;
+  --ok:#74D8A0; --ok-bg:#12331F;
+  --bad:#FF9288; --bad-bg:#3A1512;
+  --scrim:rgba(0,0,0,.66);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+h1,h2,h3,p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.wrap{max-width:1040px;margin-inline:auto;padding-inline:16px;padding-block:22px 72px;display:flex;flex-direction:column;gap:18px}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:10px 16px;flex-wrap:wrap}
+.eyebrow{font:600 13px/1.2 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+h1{font:700 46px/0.95 var(--display);letter-spacing:.01em;text-transform:uppercase;margin-top:4px}
+h2{font:700 26px/1.05 var(--display);letter-spacing:.02em;text-transform:uppercase;text-wrap:balance}
+h3{font:600 15px/1.2 var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.conn{display:inline-flex;align-items:center;gap:7px;font:500 12px var(--mono);color:var(--ink-3)}
+.conn::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--line-strong)}
+.conn.live::before{background:var(--ok)}
+.conn.off::before{background:var(--wait)}
+
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{flex:none;font:600 17px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;padding:12px 14px 11px;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;background:none;color:var(--ink-3);cursor:pointer}
+.tab:hover{color:var(--ink)}
+.tab[aria-current="page"]{color:var(--ink);border-bottom-color:var(--accent)}
+
+.notice{padding:11px 14px;border-radius:8px;background:var(--wait-bg);color:var(--wait);font-weight:500}
+.lede{color:var(--ink-2);max-width:62ch}
+.help{color:var(--ink-3);font-size:13px}
+
+/* ---------- form ---------- */
+.cols{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:22px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:18px;min-width:0}
+.phead{display:flex;flex-direction:column;gap:6px}
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.fgroup{display:flex;flex-direction:column;gap:10px;min-width:0}
+.fgroup + .fgroup{padding-top:18px;border-top:1px solid var(--line)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field.wide{grid-column:1/-1}
+.field > label,.lbl{font:600 12px/1.2 var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.inp{width:100%;min-width:0;font-size:16px;padding:10px 12px;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);color:var(--ink)}
+.inp::placeholder{color:var(--ink-3);opacity:.8}
+.inp.sm{font-size:14px;padding:7px 10px;width:auto;max-width:100%}
+.inp.iata{font-family:var(--mono);text-transform:uppercase;letter-spacing:.12em}
+textarea.inp{min-height:84px;resize:vertical}
+.money{position:relative}
+.money::before{content:"$";position:absolute;left:12px;top:50%;transform:translateY(-50%);font-family:var(--mono);color:var(--ink-3)}
+.money .inp{padding-left:26px;font-family:var(--mono)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line-strong);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:500;cursor:pointer}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.seg{position:relative;display:inline-flex;border:1px solid var(--line-strong);border-radius:8px;overflow:hidden;align-self:flex-start}
+.seg label{padding:8px 14px;cursor:pointer;font-weight:500;color:var(--ink-2)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg input:checked + label{background:var(--accent-soft);color:var(--accent)}
+.seg input:focus-visible + label{outline:2px solid var(--accent);outline-offset:-2px}
+.drop{border:1.5px dashed var(--line-strong);border-radius:10px;padding:16px;background:var(--surface-2);display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.shots{display:flex;flex-wrap:wrap;gap:10px}
+.shot{position:relative}
+.shot img{display:block;width:66px;height:86px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
+.shot button{position:absolute;top:-7px;right:-7px;width:24px;height:24px;border-radius:50%;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);font:600 13px/1 var(--body);cursor:pointer}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);border-radius:8px;padding:9px 14px;font-weight:600;cursor:pointer;text-decoration:none}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font:700 18px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;padding:14px 22px}
+.btn.small{padding:6px 10px;font-size:13px}
+.btn.danger{color:var(--bad)}
+.btn.armed{background:var(--bad-bg);border-color:var(--bad)}
+.btn[disabled]{opacity:.55;cursor:default}
+.err{color:var(--bad);font-weight:500}
+.hint{padding:9px 12px;border-radius:8px;background:var(--surface-2);color:var(--ink-2);font-size:14px}
+a.link{color:var(--accent);font-weight:500;text-underline-offset:3px;overflow-wrap:anywhere}
+
+/* ---------- status ---------- */
+.pill{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;font:600 13px/1 var(--display);letter-spacing:.09em;text-transform:uppercase;padding:5px 10px 4px;border-radius:999px;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.pill.wait{background:var(--wait-bg);color:var(--wait)}
+.pill.review{background:var(--review-bg);color:var(--review)}
+.pill.alt{background:var(--alt-bg);color:var(--alt)}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.pill.sample{background:none;border:1px dashed var(--line-strong);color:var(--ink-3)}
+.pill.sample::before{display:none}
+
+/* ---------- board ---------- */
+.tools{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.tally{display:flex;flex-wrap:wrap;gap:6px}
+.tbtn{display:inline-flex;align-items:baseline;gap:7px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;cursor:pointer;font-weight:500;color:var(--ink-2)}
+.tbtn b{font:500 14px var(--mono);color:var(--ink)}
+.tbtn[aria-pressed="true"]{border-color:var(--ink);color:var(--ink)}
+.filters{display:flex;flex-wrap:wrap;gap:8px}
+.banner{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;padding:11px 14px;border:1px dashed var(--line-strong);border-radius:8px;color:var(--ink-2)}
+#board-body{display:flex;flex-direction:column;gap:26px}
+.group{display:flex;flex-direction:column;gap:12px}
+.ghead{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;padding-bottom:8px;border-bottom:2px solid var(--ink)}
+.gdate{font:700 24px/1 var(--display);letter-spacing:.04em;text-transform:uppercase}
+.gcity{font-weight:600}
+.gmeta{color:var(--ink-3);font-size:14px}
+.gcode{font:500 14px var(--mono);letter-spacing:.08em;padding:1px 7px;border:1px solid var(--line-strong);border-radius:4px}
+.gsum{margin-left:auto;font:500 13px var(--mono);color:var(--ink-2);font-variant-numeric:tabular-nums}
+.gwait{font-size:14px;color:var(--ink-2)}
+.gwait b{font-weight:600;color:var(--wait)}
+.empty{padding:26px 18px;border:1px dashed var(--line-strong);border-radius:10px;color:var(--ink-2);text-align:left}
+
+.pass{display:grid;grid-template-columns:212px minmax(0,1fr) 196px;background:var(--surface);border:1px solid var(--line);border-radius:10px;position:relative;overflow:hidden}
+.pass > div{padding:14px 16px;display:flex;flex-direction:column;gap:9px;min-width:0}
+.pass .main{border-left:1px solid var(--line)}
+.pass .fare{border-left:2px dashed var(--line-strong);position:relative;gap:12px}
+.pass .fare::before,.pass .fare::after{content:"";position:absolute;left:-10px;width:18px;height:18px;border-radius:50%;background:var(--bg);border:1px solid var(--line)}
+.pass .fare::before{top:-10px}
+.pass .fare::after{bottom:-10px}
+.who{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}
+.name{font:700 21px/1.05 var(--display);letter-spacing:.02em;text-transform:uppercase;overflow-wrap:anywhere}
+.meta{font-size:13px;color:var(--ink-3)}
+.flag{font-size:13px;font-weight:500;color:var(--wait)}
+.route{display:flex;align-items:center;gap:12px;max-width:330px}
+.code{font:700 36px/0.9 var(--display);letter-spacing:.04em}
+.leg{flex:1;min-width:28px;display:flex;flex-direction:column;align-items:center;gap:4px;font:600 11px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+.leg::after{content:"";align-self:stretch;border-top:1.5px solid var(--line-strong)}
+.dates{font:500 14px var(--mono);font-variant-numeric:tabular-nums}
+.flight{font-weight:500;overflow-wrap:anywhere}
+.sub{font-size:14px;color:var(--ink-2);overflow-wrap:anywhere}
+.tmnote{font-size:14px;padding:8px 10px;border-radius:6px;background:var(--alt-bg);color:var(--ink);overflow-wrap:anywhere}
+.tmnote .lbl{color:var(--alt)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.thumb{padding:0;border:0;background:none;cursor:pointer;border-radius:6px}
+.thumb img{display:block;width:44px;height:58px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
+.fblock{display:flex;flex-direction:column;gap:2px;min-width:0}
+.fval{font:500 24px/1.1 var(--mono);font-variant-numeric:tabular-nums}
+.fval.muted{font-size:15px;color:var(--ink-3)}
+.fsub{font-size:13px;color:var(--ink-2);overflow-wrap:anywhere}
+.save{font:600 13px var(--mono);color:var(--ok)}
+
+.mini{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:11px 13px;cursor:pointer}
+.mini:hover{border-color:var(--accent)}
+.mini .mroute{font:700 20px/1 var(--display);letter-spacing:.05em}
+.mini .sub{grid-column:1/-1}
+
+/* ---------- setup ---------- */
+.setup{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;align-items:start}
+.list{display:flex;flex-direction:column}
+.li{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.li:first-child{border-top:0}
+.li .grow{flex:1 1 180px;min-width:0}
+.li .t{font-weight:600;overflow-wrap:anywhere}
+
+/* ---------- detail dialog ---------- */
+dialog{border:1px solid var(--line);border-radius:12px;padding:0;background:var(--surface);color:var(--ink);width:min(720px,calc(100% - 24px));max-height:calc(100% - 32px)}
+dialog::backdrop{background:var(--scrim)}
+.dwrap{padding:20px;display:flex;flex-direction:column;gap:16px}
+.dhead{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+.dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 16px;font-size:14px}
+.dl dt{font:600 12px/1.7 var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.dl dd{margin:0;overflow-wrap:anywhere}
+.full{display:flex;flex-direction:column;gap:12px}
+.full img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:8px}
+.desk{display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line)}
+
+.toast{position:fixed;left:50%;bottom:0;transform:translateX(-50%);margin-bottom:calc(18px + env(safe-area-inset-bottom, 0px));max-width:calc(100% - 32px);padding:11px 16px;border-radius:8px;background:var(--ink);color:var(--bg);font-weight:500;z-index:50}
+
+@media (max-width:860px){
+  .cols,.setup{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:760px){
+  h1{font-size:38px}
+  .pass{grid-template-columns:minmax(0,1fr)}
+  .pass .main{border-left:0;border-top:1px solid var(--line)}
+  .pass .fare{border-left:0;border-top:2px dashed var(--line-strong);flex-direction:row;flex-wrap:wrap;gap:12px 24px}
+  .pass .fare::before{left:-10px;top:-10px}
+  .pass .fare::after{left:auto;right:-10px;top:-10px;bottom:auto}
+  .gsum{margin-left:0}
+}
+@media (max-width:460px){
+  .grid2{grid-template-columns:minmax(0,1fr)}
+  .panel{padding:16px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+.stack{display:flex;flex-direction:column;gap:14px;min-width:0}
+.gate{max-width:660px}
+.tmbar{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.tmbar .help{flex:1 1 100%}
+.copyrow{display:flex;gap:8px;min-width:0}
+.tmbar .copyrow{flex:1 1 320px}
+.copyrow .inp{flex:1;min-width:0;width:auto;font-family:var(--mono);font-size:13px;padding:7px 10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <p class="eyebrow" id="party">Touring party</p>
+      <h1>Flight Desk</h1>
+    </div>
+    <p class="conn" id="conn" role="status">Connecting</p>
+  </header>
+
+  <!-- ======== GATE: crew code, errors ======== -->
+  <section id="gate" class="panel gate" hidden>
+    <div id="gate-lock" class="stack" hidden>
+      <div class="phead">
+        <h2>Crew code</h2>
+        <p class="lede">Enter the code Q sent with the link. You only need to do this once on this device.</p>
+      </div>
+      <form id="lock-form" class="row" novalidate>
+        <label class="sr" for="lock-code">Crew code</label>
+        <input id="lock-code" class="inp iata" autocomplete="off" maxlength="40" style="max-width:11em">
+        <button type="submit" class="btn primary" id="lock-btn">Unlock</button>
+      </form>
+      <p class="err" id="lock-err" hidden role="alert"></p>
+    </div>
+    <div id="gate-msg" class="phead" hidden>
+      <h2 id="gate-msg-title"></h2>
+      <p class="lede" id="gate-msg-text"></p>
+    </div>
+  </section>
+
+  <div id="app" class="stack" style="gap:18px">
+    <nav class="tabs" aria-label="Sections">
+      <button type="button" class="tab" id="tab-request" data-tab="request">Request a flight</button>
+      <button type="button" class="tab" id="tab-board" data-tab="board">Board</button>
+    </nav>
+
+    <p class="notice" id="notice" hidden></p>
+
+    <!-- ======== REQUEST ======== -->
+    <section id="view-request" class="cols">
+      <form id="req-form" class="panel" novalidate>
+        <div class="phead">
+          <h2>Request a flight</h2>
+          <p class="lede">Send the flight you want for a show. Paste the link or add a screenshot. Q books it or comes back with a better fare, and you can follow the status here.</p>
+        </div>
+
+        <div class="fgroup" role="group" aria-labelledby="g-who">
+          <span class="lbl" id="g-who">Who's flying</span>
+          <div class="chips" id="crew-chips"><span class="help">Loading the crew list</span></div>
+        </div>
+
+        <div class="fgroup" role="group" aria-label="Trip">
+          <div class="grid2">
+            <div class="field wide">
+              <label for="f-show">Show</label>
+              <select id="f-show" class="inp"><option value="">Choose a show</option><option value="other">Other trip (not on the list)</option></select>
+            </div>
+            <div class="field wide" id="f-show-other-wrap" hidden>
+              <label for="f-show-other">What is the trip for</label>
+              <input id="f-show-other" class="inp" maxlength="80" placeholder="Rehearsal in Nashville, promo day, flight home">
+            </div>
+            <p class="hint field wide" id="show-hint" hidden></p>
+            <div class="field wide">
+              <span class="lbl" id="trip-lbl">Trip type</span>
+              <div class="seg" role="radiogroup" aria-labelledby="trip-lbl">
+                <input type="radio" name="trip" id="f-trip-round" value="round" checked><label for="f-trip-round">Round trip</label>
+                <input type="radio" name="trip" id="f-trip-oneway" value="oneway"><label for="f-trip-oneway">One way</label>
+              </div>
+            </div>
+            <div class="field">
+              <label for="f-from">From (airport code)</label>
+              <input id="f-from" class="inp iata" maxlength="3" placeholder="BNA" autocomplete="off" autocapitalize="characters">
+            </div>
+            <div class="field">
+              <label for="f-to">To (airport code)</label>
+              <input id="f-to" class="inp iata" maxlength="3" placeholder="DEN" autocomplete="off" autocapitalize="characters">
+            </div>
+            <div class="field">
+              <label for="f-depart">Fly out</label>
+              <input id="f-depart" class="inp" type="date">
+            </div>
+            <div class="field" id="f-return-wrap">
+              <label for="f-return">Fly back</label>
+              <input id="f-return" class="inp" type="date">
+            </div>
+          </div>
+        </div>
+
+        <div class="fgroup" role="group" aria-labelledby="g-flight">
+          <span class="lbl" id="g-flight">The flight you want</span>
+          <div class="field">
+            <label for="f-link">Link to the flight</label>
+            <input id="f-link" class="inp" type="url" inputmode="url" maxlength="2000" placeholder="Paste the airline or Google Flights link">
+          </div>
+          <div class="drop" id="drop">
+            <div>
+              <span class="lbl">Screenshots</span>
+              <p class="help">Up to 4. Choose them, drop them here, or paste one straight from your clipboard.</p>
+            </div>
+            <div class="shots" id="shot-list"></div>
+            <label class="btn" for="f-files">Add screenshots</label>
+            <input id="f-files" class="sr" type="file" accept="image/*" multiple>
+          </div>
+          <div class="grid2">
+            <div class="field wide">
+              <label for="f-flight">Airline, flight and times</label>
+              <input id="f-flight" class="inp" maxlength="160" placeholder="Delta 1432, 7:05a to 9:40a, nonstop">
+            </div>
+            <div class="field">
+              <label for="f-price">Price you saw</label>
+              <div class="money"><input id="f-price" class="inp" inputmode="decimal" maxlength="9" placeholder="412"></div>
+            </div>
+            <div class="field">
+              <label for="f-seat">Seat</label>
+              <select id="f-seat" class="inp"><option value="any">No preference</option><option value="aisle">Aisle</option><option value="window">Window</option></select>
+            </div>
+            <div class="field">
+              <label for="f-bags">Bags</label>
+              <select id="f-bags" class="inp"><option value="0">Carry-on only</option><option value="1">1 checked bag</option><option value="2">2 checked bags</option></select>
+            </div>
+            <div class="field wide">
+              <label for="f-notes">Anything Q should know</label>
+              <textarea id="f-notes" class="inp" maxlength="600" placeholder="Guitar as a carry-on, need to be home Sunday night, a backup flight you would also take"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <p class="err" id="f-error" hidden role="alert"></p>
+        <div><button type="submit" class="btn primary" id="f-submit">Send request</button></div>
+      </form>
+
+      <aside class="side" aria-live="polite">
+        <h3 id="mine-title">Your requests</h3>
+        <div class="side" id="mine-list"><p class="help">Pick your name to see the flights you have sent and where each one stands.</p></div>
+      </aside>
+    </section>
+
+    <!-- ======== BOARD ======== -->
+    <section id="view-board" hidden class="side" style="gap:18px">
+      <div class="tmbar" id="tmbar" hidden>
+        <span class="lbl">Tour desk</span>
+        <a class="btn small" id="tm-sheet" href="#">Open the Sheet</a>
+        <a class="btn small" id="tm-folder" href="#">Screenshot folder</a>
+        <div class="copyrow">
+          <label class="sr" for="tm-crew">Crew link</label>
+          <input id="tm-crew" class="inp" readonly>
+          <button type="button" class="btn small" data-copy="tm-crew">Copy crew link</button>
+        </div>
+        <p class="help">Add shows and edit the crew list in the Sheet (Shows and Crew tabs). Changes show up here within a minute.</p>
+      </div>
+      <div class="tools">
+        <div class="tally" id="tally"></div>
+        <div class="filters">
+          <label class="sr" for="flt-show">Filter by show</label>
+          <select id="flt-show" class="inp sm"></select>
+          <label class="sr" for="flt-traveler">Filter by traveler</label>
+          <select id="flt-traveler" class="inp sm"></select>
+        </div>
+      </div>
+      <div id="board-body"><p class="empty">Loading the board. Requests show up here with the traveler's link, screenshots and price.</p></div>
+    </section>
+  </div>
+</div>
+
+<dialog id="detail" aria-label="Request details"><div class="dwrap" id="detail-body"></div></dialog>
+<p class="toast" id="toast" hidden role="status"></p>
+
+<script>
+(function(){
+'use strict';
+var $ = function(id){ return document.getElementById(id); };
+var LS = {
+  get: function(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set: function(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+};
+var STATUS = {
+  submitted:{label:'Submitted', cls:'wait'},
+  reviewing:{label:'In review', cls:'review'},
+  alt:{label:'Alternative sent', cls:'alt'},
+  booked:{label:'Booked', cls:'ok'}
+};
+var ORDER = ['submitted','reviewing','alt','booked'];
+var MAX_SHOT = 900000, MAX_THUMB = 9000, MAX_SHOTS = 4;
+
+/* The Google Apps Script web app that stores everything. The page talks to it with plain web
+   requests that carry no Google sign-in, so it works no matter which Google accounts the browser holds. */
+var API = 'https://script.google.com/macros/s/AKfycbyW8LCKOj3mFVrWigr_hXI3aRFn-AL0j8Waixk7w2INPpzGT_SM38DaTEFqrwU6jYIJQQ/exec';
+var params = new URLSearchParams(location.search);
+function okv(v, re){ return re.test(v || '') ? v : ''; }
+var BOOT = {
+  k: okv(params.get('k'), /^[A-Za-z0-9_-]{1,80}$/),
+  tm: okv(params.get('tm'), /^[A-Za-z0-9_-]{1,80}$/)
+};
+var GAS = /^https:/.test(API);
+if (BOOT.k) LS.set('fd.k', BOOT.k);
+if (BOOT.tm) LS.set('fd.tm', BOOT.tm);
+
+var S = {
+  conn:'pending', isTM:false,
+  k:BOOT.k || LS.get('fd.k') || '', tm:BOOT.tm || LS.get('fd.tm') || '',
+  crew:[], shows:[], requests:[], thumbs:{}, links:null, loaded:false,
+  tab:'request', touched:false, me:LS.get('fd.me') || '',
+  filter:{status:'all', show:'all', traveler:'all'},
+  hideSamples:LS.get('fd.hideSamples') === '1',
+  shots:[], busy:false, auto:{from:'', to:''}, shotCache:{}
+};
+function auth(){ return {k:S.k, tm:S.tm}; }
+function call(name){
+  var args = Array.prototype.slice.call(arguments, 1);
+  if (!GAS) return Promise.reject(new Error('offline'));
+  return fetch(API, {method:'POST', credentials:'omit', redirect:'follow', body:JSON.stringify({fn:name.replace(/^api_/, ''), args:args})})
+    .then(function(r){ if (!r.ok) throw new Error('http ' + r.status); return r.json(); });
+}
+
+/* ---------- tiny helpers ---------- */
+function h(tag, attrs){
+  var el = document.createElement(tag), k, v, i;
+  if (attrs) for (k in attrs){
+    v = attrs[k];
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k === 'text') el.textContent = v;
+    else if (k === 'hidden') el.hidden = true;
+    else if (k.slice(0,2) === 'on') el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (i = 2; i < arguments.length; i++) add(el, arguments[i]);
+  return el;
+}
+function add(el, kid){
+  if (kid == null || kid === false) return;
+  if (Array.isArray(kid)) { kid.forEach(function(k){ add(el, k); }); return; }
+  el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+}
+function str(v, max){ return typeof v === 'string' ? v.slice(0, max || 600) : ''; }
+function numOrNull(v){
+  if (typeof v === 'number') return isFinite(v) ? v : null;
+  var n = parseFloat(String(v == null ? '' : v).replace(/[^0-9.]/g, ''));
+  return isFinite(n) ? n : null;
+}
+function money(n){
+  if (typeof n !== 'number' || !isFinite(n)) return '';
+  return '$' + n.toLocaleString('en-US', {minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits:2});
+}
+function safeUrl(u){
+  try { var x = new URL(String(u).trim()); return (x.protocol === 'https:' || x.protocol === 'http:') ? x.href : null; }
+  catch(e){ return null; }
+}
+function host(u){ try { return new URL(u).hostname.replace(/^www\./, ''); } catch(e){ return 'link'; } }
+function isoPlus(days){
+  var d = new Date(); d.setDate(d.getDate() + days);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function fmtDate(iso, long){
+  var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '');
+  if (!m) return iso || '';
+  var d = new Date(+m[1], +m[2]-1, +m[3]);
+  return d.toLocaleDateString('en-US', long ? {weekday:'long', month:'long', day:'numeric'} : {weekday:'short', month:'short', day:'numeric'});
+}
+function fmtWhen(s){
+  var m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/.exec(s || '');
+  if (!m) return s || '';
+  var d = new Date(+m[1], +m[2]-1, +m[3], +m[4], +m[5]);
+  return d.toLocaleDateString('en-US', {month:'short', day:'numeric'}) + ', ' + d.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+}
+function stamp(msAgo){
+  var d = new Date(Date.now() - msAgo), p = function(n){ return String(n).padStart(2,'0'); };
+  return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+function code(v){ return String(v || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0,3); }
+function showKey(s){ return s.date + '|' + s.city; }
+function showLabel(s){ return fmtDate(s.date) + ' · ' + (s.city || s.venue || 'Show'); }
+var toastTimer;
+function toast(msg){
+  var t = $('toast'); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(function(){ t.hidden = true; }, 4200);
+}
+function fail(){ toast('That did not go through. Check your connection and try again.'); }
+function confirmBtn(label, sure, fn){
+  var b = h('button', {type:'button', class:'btn small danger', text:label}), armed = false, t;
+  b.addEventListener('click', function(){
+    if (!armed){
+      armed = true; b.textContent = sure; b.classList.add('armed');
+      t = setTimeout(function(){ armed = false; b.textContent = label; b.classList.remove('armed'); }, 4000);
+      return;
+    }
+    clearTimeout(t); b.disabled = true;
+    Promise.resolve().then(fn).catch(function(){ fail(); b.disabled = false; armed = false; b.textContent = label; b.classList.remove('armed'); });
+  });
+  return b;
+}
+function setOptions(sel, opts, value){
+  sel.replaceChildren.apply(sel, opts.map(function(o){ return h('option', {value:o[0], text:o[1]}); }));
+  sel.value = opts.some(function(o){ return o[0] === value; }) ? value : opts[0][0];
+  return sel.value;
+}
+function copyFrom(id){
+  var inp = $(id), done = function(){ toast('Copied.'); };
+  inp.focus(); inp.select();
+  var fallback = function(){ try { if (document.execCommand('copy')) done(); else toast('Select the link and copy it.'); } catch(e){ toast('Select the link and copy it.'); } };
+  try { navigator.clipboard.writeText(inp.value).then(done, fallback); } catch(e){ fallback(); }
+}
+
+/* ---------- sample data (shown only until the first real request) ---------- */
+function sampleData(){
+  var c = S.crew.length >= 3 ? S.crew.slice(0,3) : [
+    {name:'Traveler One', home:'BNA'}, {name:'Traveler Two', home:'LAX'}, {name:'Traveler Three', home:'YYZ'}];
+  var fallback = ['BNA','LAX','YYZ'], date = isoPlus(23);
+  function mk(i, o){
+    var p = c[i-1], base = {id:'sample-'+i, sample:true, traveler:p.name, showDate:date, show:'Denver, CO', trip:'round',
+      from:p.home || fallback[i-1], to:'DEN', depart:isoPlus(22), ret:isoPlus(24), seat:'Aisle', bags:'1 checked', shotCount:1,
+      link:'', notes:'', status:'submitted', createdAt:stamp(i*7*36e5)}, k;
+    for (k in o) base[k] = o[k];
+    return base;
+  }
+  return {
+    shows:[{sample:true, date:date, city:'Denver, CO', venue:'Sample venue', airport:'DEN', arriveBy:'Land by 1:00 PM on show day.'}],
+    requests:[
+      mk(1, {flight:'Southwest 1423, 7:10a to 9:05a, nonstop', price:286, notes:'Guitar as a carry-on.', status:'booked', bookedPrice:286, confirmation:'SAMPLE', note:'Booked as sent.'}),
+      mk(2, {flight:'United 512, 8:30a to 11:52a, nonstop', price:412, seat:'Window', status:'alt', altPrice:348, altDetails:'Delta 2210, 8:05a to 11:30a, nonstop', note:'Same arrival window for $64 less. OK to book this one?'}),
+      mk(3, {flight:'Air Canada 1037, 9:15a to 11:20a, nonstop', price:538, bags:'2 checked', notes:'Two checked bags, one is the pedalboard case.'})
+    ]
+  };
+}
+function sampleShot(r, big){
+  var key = r.id + (big ? 'b' : 's');
+  if (S.shotCache[key]) return S.shotCache[key];
+  var W = big ? 640 : 140, H = big ? 760 : 180, u = W / 140, c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  var x = c.getContext('2d');
+  x.fillStyle = '#e9edf2'; x.fillRect(0,0,W,H);
+  x.fillStyle = '#ffffff'; x.fillRect(8*u, 30*u, W-16*u, H-44*u);
+  x.fillStyle = '#5e6b7b'; x.font = '600 ' + (8*u) + 'px sans-serif'; x.fillText('SAMPLE SCREENSHOT', 8*u, 20*u);
+  x.fillStyle = '#14202e'; x.font = '700 ' + (15*u) + 'px sans-serif'; x.fillText(r.from + ' to ' + r.to, 16*u, 56*u);
+  x.fillStyle = '#5e6b7b'; x.font = (7.5*u) + 'px sans-serif';
+  String(r.flight || '').split(', ').forEach(function(line, i){ x.fillText(line, 16*u, (76 + i*12)*u); });
+  x.fillStyle = '#14202e'; x.font = '700 ' + (18*u) + 'px sans-serif'; x.fillText('$' + r.price, 16*u, H - 28*u);
+  return (S.shotCache[key] = c.toDataURL('image/jpeg', 0.8));
+}
+function view(){
+  var samples = !S.requests.length && !S.hideSamples && (S.conn === 'offline' || (S.conn === 'live' && S.loaded));
+  if (samples){ var s = sampleData(); return {samples:true, shows:S.shows.concat(s.shows), requests:s.requests}; }
+  return {samples:false, shows:S.shows, requests:S.requests};
+}
+function statusOf(r){ return STATUS[r.status] ? r.status : 'submitted'; }
+function pill(st){ return h('span', {class:'pill ' + STATUS[st].cls, text:STATUS[st].label}); }
+function byDate(a, b){ return String(a.date || '').localeCompare(String(b.date || '')); }
+
+/* ---------- shell ---------- */
+function setTab(tab, fromUser){
+  S.tab = tab === 'board' ? 'board' : 'request';
+  if (fromUser) S.touched = true;
+  ['request','board'].forEach(function(t){
+    $('view-' + t).hidden = t !== S.tab;
+    var b = $('tab-' + t);
+    if (t === S.tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
+}
+function renderShell(){
+  var gate = S.conn === 'locked' ? 'lock' : S.conn === 'down' ? 'msg' : '';
+  $('gate').hidden = !gate;
+  $('gate-lock').hidden = gate !== 'lock';
+  $('gate-msg').hidden = gate !== 'msg';
+  $('app').hidden = !!gate;
+  if (gate === 'msg'){
+    $('gate-msg-title').textContent = 'Could not reach the board';
+    $('gate-msg-text').textContent = 'Check your connection and reload the page.';
+  }
+  var c = $('conn');
+  c.className = 'conn' + (S.conn === 'live' ? ' live' : S.conn === 'pending' ? '' : ' off');
+  c.textContent = S.conn === 'live' ? (S.isTM ? 'Tour desk' : 'Live board') : S.conn === 'offline' ? 'Preview' : S.conn === 'locked' ? 'Locked' : S.conn === 'down' ? 'Offline' : 'Connecting';
+  var n = $('notice'), msg = S.conn === 'offline' ? 'This is a preview with sample data. Nothing here is saved.' : '';
+  n.hidden = !msg; n.textContent = msg;
+  var bar = $('tmbar'), L = S.links;
+  bar.hidden = !(S.isTM && L);
+  if (S.isTM && L){
+    var sheet = safeUrl(L.sheet), folder = safeUrl(L.folder);
+    $('tm-sheet').hidden = !sheet; if (sheet) $('tm-sheet').href = sheet;
+    $('tm-folder').hidden = !folder; if (folder) $('tm-folder').href = folder;
+    if ($('tm-crew').value !== (L.crew || '')) $('tm-crew').value = L.crew || '';
+  }
+}
+
+/* ---------- request form ---------- */
+function renderCrewChips(){
+  var box = $('crew-chips'), list = S.crew;
+  if (S.conn === 'offline') list = sampleData().requests.map(function(r){ return {name:r.traveler}; });
+  if (!list.length){
+    box.replaceChildren(h('span', {class:'help', text: S.loaded ? 'No travelers on the crew list yet. Q adds them in the Sheet.' : 'Loading the crew list'}));
+    return;
+  }
+  box.replaceChildren.apply(box, list.map(function(c){
+    return h('button', {type:'button', class:'chip', 'aria-pressed': String(S.me === c.name), text:c.name, onclick:function(){ pickTraveler(c.name); }});
+  }));
+}
+function pickTraveler(name){
+  S.me = name; S.touched = true; LS.set('fd.me', name);
+  var c = S.crew.find(function(x){ return x.name === name; }), f = $('f-from');
+  if (c && c.home && (!f.value || f.value === S.auto.from)){ f.value = c.home; S.auto.from = c.home; }
+  renderCrewChips(); renderMine();
+}
+function renderShowOptions(){
+  var sel = $('f-show'), opts = [['', 'Choose a show']], cutoff = isoPlus(-2);
+  S.shows.slice().sort(byDate).forEach(function(s){
+    if (s.date >= cutoff) opts.push([showKey(s), showLabel(s) + (s.venue ? ', ' + s.venue : '')]);
+  });
+  opts.push(['other', 'Other trip (not on the list)']);
+  setOptions(sel, opts, sel.value);
+  renderShowHint();
+}
+function renderShowHint(){
+  var v = $('f-show').value, hint = $('show-hint');
+  $('f-show-other-wrap').hidden = v !== 'other';
+  var s = S.shows.find(function(x){ return showKey(x) === v; });
+  if (!s){ hint.hidden = true; return; }
+  hint.hidden = false;
+  hint.textContent = 'Show day is ' + fmtDate(s.date, true) + (s.airport ? ', nearest airport ' + s.airport : '') + '.' + (s.arriveBy ? ' ' + s.arriveBy : '');
+  var t = $('f-to');
+  if (s.airport && (!t.value || t.value === S.auto.to)){ t.value = s.airport; S.auto.to = s.airport; }
+}
+function renderShots(){
+  var box = $('shot-list');
+  box.replaceChildren.apply(box, S.shots.map(function(s, i){
+    return h('div', {class:'shot'},
+      h('img', {src:s.thumb, alt:'Screenshot ' + (i+1)}),
+      h('button', {type:'button', 'aria-label':'Remove screenshot ' + (i+1), text:'×', onclick:function(){ S.shots.splice(i,1); renderShots(); }}));
+  }));
+}
+function loadImg(file){
+  return new Promise(function(res, rej){
+    var url = URL.createObjectURL(file), img = new Image();
+    img.onload = function(){ res(img); };
+    img.onerror = function(){ URL.revokeObjectURL(url); rej(new Error('decode')); };
+    img.src = url;
+  });
+}
+function compress(file){
+  return loadImg(file).then(function(img){
+    var W = img.naturalWidth, H = img.naturalHeight;
+    function draw(side, q){
+      var sc = Math.min(1, side / Math.max(W, H)), c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(W*sc)); c.height = Math.max(1, Math.round(H*sc));
+      var x = c.getContext('2d'); x.fillStyle = '#ffffff'; x.fillRect(0,0,c.width,c.height); x.drawImage(img, 0, 0, c.width, c.height);
+      return c.toDataURL('image/jpeg', q);
+    }
+    var side = 2200, q = 0.82, out, i;
+    for (i = 0; i < 12; i++){
+      out = draw(side, q);
+      if (out.length <= MAX_SHOT) break;
+      if (q > 0.55) q -= 0.09; else side = Math.round(side * 0.82);
+    }
+    var th = draw(120, 0.5);
+    if (th.length > MAX_THUMB) th = draw(84, 0.45);
+    URL.revokeObjectURL(img.src);
+    if (out.length > MAX_SHOT || out.indexOf('data:image/jpeg') !== 0) throw new Error('big');
+    return {dataUrl:out, thumb:th};
+  });
+}
+function addFiles(files){
+  var list = Array.prototype.filter.call(files || [], function(f){ return f && /^image\//.test(f.type); });
+  if (!list.length) return;
+  S.touched = true;
+  list.reduce(function(p, f){
+    return p.then(function(){
+      if (S.shots.length >= MAX_SHOTS){ toast('Up to ' + MAX_SHOTS + ' screenshots per request.'); return; }
+      return compress(f).then(function(s){ S.shots.push(s); renderShots(); })
+        .catch(function(){ toast('That image could not be read. Use a PNG or JPG screenshot.'); });
+    });
+  }, Promise.resolve());
+}
+function readForm(){
+  var trip = $('f-trip-oneway').checked ? 'oneway' : 'round', key = $('f-show').value;
+  var show = S.shows.find(function(s){ return showKey(s) === key; });
+  var link = $('f-link').value.trim();
+  return {
+    key:key, linkRaw:link, known: S.crew.some(function(c){ return c.name === S.me; }),
+    data:{
+      traveler:S.me, showDate: show ? show.date : '', show: show ? show.city : str($('f-show-other').value.trim(), 80),
+      trip:trip, from:code($('f-from').value), to:code($('f-to').value),
+      depart:$('f-depart').value, ret: trip === 'round' ? $('f-return').value : '',
+      link: link ? (safeUrl(link) || '') : '', flight:str($('f-flight').value.trim(), 160),
+      price:numOrNull($('f-price').value), seat:$('f-seat').value, bags:$('f-bags').value,
+      notes:str($('f-notes').value.trim(), 600)
+    }
+  };
+}
+function validate(f){
+  var d = f.data;
+  if (!f.known) return 'Pick who is flying.';
+  if (!f.key) return 'Choose the show this flight is for.';
+  if (f.key === 'other' && !d.show) return 'Say what the trip is for.';
+  if (d.from.length !== 3 || d.to.length !== 3) return 'Enter the 3-letter airport codes for From and To.';
+  if (!d.depart) return 'Pick the date you fly out.';
+  if (d.trip === 'round' && !d.ret) return 'Pick the date you fly back, or switch to One way.';
+  if (d.trip === 'round' && d.ret < d.depart) return 'The fly back date is before the fly out date.';
+  if (f.linkRaw && !d.link) return 'That link does not look right. Paste the full address, starting with https.';
+  if (!d.link && !S.shots.length && !d.flight) return 'Add the flight you want: a link, a screenshot, or the airline and times.';
+  return '';
+}
+function submitForm(ev){
+  ev.preventDefault();
+  if (S.busy) return;
+  var errEl = $('f-error'), f = readForm(), err;
+  if (S.conn === 'offline') err = 'This is a preview, so nothing was sent.';
+  else if (S.conn !== 'live') err = 'Still connecting. Try again in a moment.';
+  else err = validate(f);
+  errEl.hidden = !err; errEl.textContent = err;
+  if (err) return;
+  var btn = $('f-submit'); S.busy = true; btn.disabled = true; btn.textContent = 'Sending';
+  var shots = S.shots.slice();
+  call('api_submit', auth(), f.data, shots.map(function(s){ return s.dataUrl; }), shots.map(function(s){ return s.thumb; })).then(function(res){
+    if (!res || !res.ok){
+      var why = res && res.reason;
+      if (why === 'locked'){ S.conn = 'locked'; renderAll(); return; }
+      errEl.hidden = false;
+      errEl.textContent = why === 'traveler' ? 'Pick your name from the list again.' : 'Check the airport codes and dates, then send again.';
+      return;
+    }
+    S.shots = []; renderShots();
+    ['f-link','f-flight','f-price','f-notes','f-depart','f-return','f-show-other'].forEach(function(id){ $(id).value = ''; });
+    $('f-show').value = ''; $('f-to').value = ''; S.auto.to = ''; renderShowHint();
+    toast('Request sent. Follow it under your requests.');
+    return refresh().then(function(){ $('mine-title').scrollIntoView({block:'nearest'}); });
+  }).catch(fail).then(function(){ S.busy = false; btn.disabled = false; btn.textContent = 'Send request'; });
+}
+function renderMine(){
+  var box = $('mine-list'), known = S.crew.some(function(c){ return c.name === S.me; });
+  $('mine-title').textContent = known ? S.me + "'s requests" : 'Your requests';
+  if (!known){ box.replaceChildren(h('p', {class:'help', text:'Pick your name to see the flights you have sent and where each one stands.'})); return; }
+  var mine = S.requests.filter(function(r){ return r.traveler === S.me; })
+    .sort(function(a,b){ return String(b.createdAt).localeCompare(String(a.createdAt)); });
+  if (!mine.length){ box.replaceChildren(h('p', {class:'help', text:'Nothing sent yet. Your requests show up here with their status once you send one.'})); return; }
+  box.replaceChildren.apply(box, mine.map(function(r){
+    var st = statusOf(r), extra = '';
+    if (st === 'booked') extra = 'Booked' + (money(numOrNull(r.bookedPrice)) ? ' at ' + money(numOrNull(r.bookedPrice)) : '') + (r.confirmation ? ', confirmation ' + str(r.confirmation, 20) : '') + '.';
+    else if (st === 'alt') extra = 'Q found another option' + (money(numOrNull(r.altPrice)) ? ' at ' + money(numOrNull(r.altPrice)) : '') + '. Open to see it.';
+    return h('button', {type:'button', class:'mini', onclick:function(){ openDetail(r.id); }},
+      h('span', {class:'mroute', text:r.from + ' → ' + r.to}), pill(st),
+      h('span', {class:'sub', text:(r.show || 'Trip') + ', out ' + fmtDate(r.depart)}),
+      extra ? h('span', {class:'sub', text:extra}) : null,
+      r.note ? h('span', {class:'sub', text:'From Q: ' + str(r.note, 300)}) : null);
+  }));
+}
+
+/* ---------- board ---------- */
+function routeEl(r){
+  return h('div', {class:'route'},
+    h('span', {class:'code', text:r.from || '---'}),
+    h('span', {class:'leg', text: r.trip === 'oneway' ? 'One way' : 'Round trip'}),
+    h('span', {class:'code', text:r.to || '---'}));
+}
+function datesLine(r){ return fmtDate(r.depart) + (r.trip !== 'oneway' && r.ret ? '  to  ' + fmtDate(r.ret) : ''); }
+function prefsLine(r){ return 'Seat: ' + (str(r.seat, 30) || 'No preference') + ' · Bags: ' + (str(r.bags, 30) || 'Carry-on only'); }
+function fblock(label, value, sub, extra){
+  return h('div', {class:'fblock'}, h('span', {class:'lbl', text:label}),
+    h('span', {class:'fval' + (value ? '' : ' muted'), text:value || 'Not given'}),
+    sub ? h('span', {class:'fsub', text:sub}) : null, extra || null);
+}
+function thumbsFor(r){
+  var list = r.sample ? [sampleShot(r, false)] : (S.thumbs[r.id] || []);
+  return list.filter(function(t){ return typeof t === 'string' && t.indexOf('data:image/') === 0; }).slice(0, MAX_SHOTS).map(function(t, i){
+    return h('button', {type:'button', class:'thumb', 'aria-label':'Open screenshot ' + (i+1), onclick:function(){ openDetail(r.id); }}, h('img', {src:t, alt:''}));
+  });
+}
+function passCard(r, inOther){
+  var st = statusOf(r), crew = S.crew.find(function(c){ return c.name === r.traveler; });
+  var price = numOrNull(r.price), alt = numOrNull(r.altPrice), booked = numOrNull(r.bookedPrice), url = safeUrl(r.link);
+  var extraShots = !r.sample && r.shotCount && !(S.thumbs[r.id] || []).length;
+  var stub = h('div', {class:'stub'},
+    h('div', {class:'who'}, h('span', {class:'name', text:str(r.traveler, 60) || 'Traveler'}), r.sample ? h('span', {class:'pill sample', text:'Sample'}) : null),
+    pill(st),
+    h('span', {class:'meta', text:'Sent ' + fmtWhen(r.createdAt)}),
+    crew && crew.note ? h('span', {class:'flag', text:str(crew.note, 120)}) : null);
+  var main = h('div', {class:'main'},
+    inOther && r.show ? h('span', {class:'lbl', text:str(r.show, 80)}) : null,
+    routeEl(r),
+    h('p', {class:'dates', text:datesLine(r)}),
+    r.flight ? h('p', {class:'flight', text:str(r.flight, 160)}) : null,
+    h('p', {class:'sub', text:prefsLine(r)}),
+    r.notes ? h('p', {class:'sub', text:str(r.notes, 600)}) : null,
+    r.note ? h('p', {class:'tmnote'}, h('span', {class:'lbl', text:'From Q'}), ' ', str(r.note, 600)) : null,
+    h('div', {class:'row'}, thumbsFor(r),
+      extraShots ? h('span', {class:'meta', text:r.shotCount + (r.shotCount === 1 ? ' screenshot' : ' screenshots')}) : null,
+      url ? h('a', {class:'link', href:url, target:'_blank', rel:'noopener noreferrer', text:'Their link (' + host(url) + ')'}) : null,
+      h('button', {type:'button', class:'btn small', text: S.isTM && !r.sample ? 'Review' : 'Details', onclick:function(){ openDetail(r.id); }})));
+  var fare = h('div', {class:'fare'}, fblock('They found', money(price)));
+  if (alt != null) fare.append(fblock('Best alternative', money(alt), str(r.altDetails, 200),
+    price != null && alt < price ? h('span', {class:'save', text:'Saves ' + money(price - alt)}) : null));
+  if (st === 'booked') fare.append(fblock('Booked', money(booked) || 'Price not entered', r.confirmation ? 'Confirmation ' + str(r.confirmation, 20) : ''));
+  return h('article', {class:'pass'}, stub, main, fare);
+}
+function renderBoard(){
+  var v = view(), body = $('board-body');
+  var known = {}; v.shows.forEach(function(s){ known[showKey(s)] = s; });
+  function groupKey(r){ var k = r.showDate + '|' + r.show; return known[k] ? k : 'other'; }
+  var showOpts = [['all','All shows']].concat(v.shows.slice().sort(byDate).map(function(s){ return [showKey(s), showLabel(s)]; }), [['other','Other travel']]);
+  S.filter.show = setOptions($('flt-show'), showOpts, S.filter.show);
+  var names = [];
+  S.crew.forEach(function(c){ if (names.indexOf(c.name) < 0) names.push(c.name); });
+  v.requests.forEach(function(r){ if (r.traveler && names.indexOf(r.traveler) < 0) names.push(r.traveler); });
+  S.filter.traveler = setOptions($('flt-traveler'), [['all','All travelers']].concat(names.map(function(n){ return [n, n]; })), S.filter.traveler);
+
+  var scoped = v.requests.filter(function(r){
+    return (S.filter.show === 'all' || groupKey(r) === S.filter.show) && (S.filter.traveler === 'all' || r.traveler === S.filter.traveler);
+  });
+  var counts = {all:scoped.length}; ORDER.forEach(function(k){ counts[k] = 0; });
+  scoped.forEach(function(r){ counts[statusOf(r)]++; });
+  var tally = $('tally');
+  tally.replaceChildren.apply(tally, [['all','All']].concat(ORDER.map(function(k){ return [k, STATUS[k].label]; })).map(function(p){
+    return h('button', {type:'button', class:'tbtn', 'aria-pressed':String(S.filter.status === p[0]), onclick:function(){ S.filter.status = p[0]; renderBoard(); }},
+      p[1], h('b', {text:String(counts[p[0]])}));
+  }));
+
+  body.replaceChildren();
+  if (S.conn === 'pending' || (S.conn === 'live' && !S.loaded)){
+    body.append(h('p', {class:'empty', text:'Loading the board. Requests show up here with the traveler’s link, screenshots and price.'}));
+    return;
+  }
+  if (v.samples) body.append(h('div', {class:'banner'},
+    h('span', {text:'These are sample requests so you can see how the board fills in. They go away when the first real request arrives.'}),
+    h('button', {type:'button', class:'btn small', text:'Hide samples', onclick:function(){ S.hideSamples = true; LS.set('fd.hideSamples','1'); renderAll(); }})));
+
+  var shown = scoped.filter(function(r){ return S.filter.status === 'all' || statusOf(r) === S.filter.status; });
+  var filtered = S.filter.status !== 'all' || S.filter.traveler !== 'all';
+  var today = isoPlus(0), groups = [];
+  v.shows.slice().sort(byDate).forEach(function(s){
+    var key = showKey(s);
+    if (S.filter.show !== 'all' && S.filter.show !== key) return;
+    var rs = shown.filter(function(r){ return groupKey(r) === key; });
+    if (!rs.length && (filtered || s.date < today)) return;
+    groups.push({show:s, rs:rs});
+  });
+  var others = shown.filter(function(r){ return groupKey(r) === 'other'; });
+  if (others.length) groups.push({show:null, rs:others});
+
+  if (!groups.length){
+    body.append(h('p', {class:'empty', text: v.requests.length ? 'Nothing matches these filters.' : 'No requests yet. When someone sends a flight, it lands here with their link, screenshots and price, ready to compare.'}));
+    return;
+  }
+  groups.forEach(function(g){
+    var s = g.show, quoted = 0, bookedSum = 0;
+    g.rs.forEach(function(r){ quoted += numOrNull(r.price) || 0; if (statusOf(r) === 'booked') bookedSum += numOrNull(r.bookedPrice) || 0; });
+    var head = h('div', {class:'ghead'},
+      h('span', {class:'gdate', text: s ? fmtDate(s.date) : 'Other travel'}),
+      s && s.city ? h('span', {class:'gcity', text:s.city}) : null,
+      s && s.venue ? h('span', {class:'gmeta', text:s.venue}) : null,
+      s && s.airport ? h('span', {class:'gcode', text:s.airport}) : null,
+      s && s.sample ? h('span', {class:'pill sample', text:'Sample'}) : null,
+      quoted || bookedSum ? h('span', {class:'gsum', text:[quoted ? 'Quoted ' + money(quoted) : '', bookedSum ? 'Booked ' + money(bookedSum) : ''].filter(Boolean).join('  ')}) : null);
+    var sec = h('section', {class:'group'}, head);
+    if (s && !filtered){
+      var key = showKey(s);
+      var all = v.requests.filter(function(r){ return groupKey(r) === key; });
+      var roster = s.sample && S.crew.length < 3 ? [] : S.crew;
+      var missing = roster.filter(function(c){ return !all.some(function(r){ return r.traveler === c.name; }); }).map(function(c){ return c.name; });
+      if (roster.length) sec.append(h('p', {class:'gwait'}, missing.length ? [h('b', {text:'No request yet: '}), missing.join(', ')] : 'Everyone on the crew list has sent a request.'));
+    }
+    g.rs.slice().sort(function(a,b){ return String(a.traveler).localeCompare(String(b.traveler)); })
+      .forEach(function(r){ sec.append(passCard(r, !s)); });
+    body.append(sec);
+  });
+}
+
+/* ---------- detail / review ---------- */
+function compareUrl(r){
+  var q = r.trip === 'oneway' ? 'One way flights from ' + r.from + ' to ' + r.to + ' on ' + r.depart
+    : 'Flights from ' + r.from + ' to ' + r.to + ' on ' + r.depart + ' through ' + r.ret;
+  return 'https://www.google.com/travel/flights?q=' + encodeURIComponent(q);
+}
+function openDetail(id, keepOpen){
+  var v = view(), r = v.requests.find(function(x){ return x.id === id; });
+  var dlg = $('detail'), body = $('detail-body');
+  if (!r){ if (dlg.open) dlg.close(); return; }
+  dlg.dataset.id = id;
+  var st = statusOf(r), crew = S.crew.find(function(c){ return c.name === r.traveler; }), url = safeUrl(r.link);
+  var show = v.shows.find(function(s){ return showKey(s) === r.showDate + '|' + r.show; });
+  var rows = [
+    ['Trip', show ? showLabel(show) + (show.venue ? ', ' + show.venue : '') : (r.show || 'Other travel')],
+    ['Dates', datesLine(r)],
+    ['Flight', r.flight || 'Not given'],
+    ['Price seen', money(numOrNull(r.price)) || 'Not given'],
+    ['Seat and bags', prefsLine(r)],
+    ['Notes', r.notes || 'None'],
+    crew && crew.note ? ['Booking note', crew.note] : null,
+    ['Sent', fmtWhen(r.createdAt)]
+  ].filter(Boolean);
+  var dl = h('dl', {class:'dl'});
+  rows.forEach(function(p){ dl.append(h('dt', {text:p[0]}), h('dd', {text:str(String(p[1]), 600)})); });
+  var shotsBox = h('div', {class:'full'});
+  body.replaceChildren(
+    h('div', {class:'dhead'},
+      h('div', null, h('p', {class:'eyebrow', text: r.sample ? 'Sample request' : 'Flight request'}), h('h2', {text:str(r.traveler, 60) || 'Traveler'})),
+      h('button', {type:'button', class:'btn small', text:'Close', onclick:function(){ dlg.close(); }})),
+    h('div', {class:'row'}, pill(st)),
+    routeEl(r), dl,
+    h('div', {class:'row'},
+      url ? h('a', {class:'btn small', href:url, target:'_blank', rel:'noopener noreferrer', text:'Open their link'}) : null,
+      r.from && r.to && r.depart ? h('a', {class:'btn small', href:compareUrl(r), target:'_blank', rel:'noopener noreferrer', text:'Compare on Google Flights'}) : null),
+    shotsBox,
+    deskSection(r, st));
+  loadShots(r, shotsBox);
+  if (!keepOpen || !dlg.open){ try { dlg.showModal(); } catch(e){ dlg.setAttribute('open', ''); } }
+}
+function loadShots(r, box){
+  function paint(list){
+    if (!list.length){ if (r.shotCount) box.replaceChildren(h('p', {class:'help', text:'The screenshots could not be loaded.'})); else box.replaceChildren(); return; }
+    box.replaceChildren(h('h3', {text: list.length === 1 ? 'Screenshot' : 'Screenshots'}));
+    list.forEach(function(u, i){ box.append(h('img', {src:u, alt:'Screenshot ' + (i+1) + ' from ' + (r.traveler || 'traveler')})); });
+  }
+  if (r.sample){ paint([sampleShot(r, true)]); return; }
+  if (!r.shotCount || !GAS){ paint([]); return; }
+  if (S.shotCache[r.id]){ paint(S.shotCache[r.id]); return; }
+  box.replaceChildren(h('p', {class:'help', text:'Loading screenshots'}));
+  call('api_shots', auth(), r.id).then(function(res){
+    var list = ((res && res.shots) || []).filter(function(u){ return typeof u === 'string' && u.indexOf('data:image/') === 0; });
+    if (list.length) S.shotCache[r.id] = list;
+    paint(list);
+  }).catch(function(){ paint([]); });
+}
+function deskSection(r, st){
+  var live = S.isTM && !r.sample && S.conn === 'live';
+  if (live){
+    var f = function(id, label, node){ return h('div', {class:'field'}, h('label', {for:id, text:label}), node); };
+    var status = h('select', {id:'d-status', class:'inp'});
+    setOptions(status, ORDER.map(function(k){ return [k, STATUS[k].label]; }), st);
+    var price = numOrNull(r.price);
+    var inp = function(id, val, extra){ var a = {id:id, class:'inp', value: val == null ? '' : String(val)}, k; for (k in extra) a[k] = extra[k]; return h('input', a); };
+    var note = h('textarea', {id:'d-note', class:'inp', maxlength:'600'}); note.value = r.note || '';
+    var save = h('button', {type:'button', class:'btn primary', text:'Save', onclick:function(){
+      save.disabled = true;
+      call('api_desk', auth(), r.id, {
+        status:$('d-status').value, altPrice:numOrNull($('d-alt-price').value), altDetails:$('d-alt-details').value.trim(),
+        altLink:safeUrl($('d-alt-link').value) || '', bookedPrice:numOrNull($('d-booked-price').value),
+        confirmation:$('d-conf').value.trim(), note:$('d-note').value.trim()
+      }).then(function(res){
+        if (!res || !res.ok) throw new Error('refused');
+        toast('Saved. ' + str(r.traveler, 60) + ' sees the update on their page.');
+        return refresh().then(function(){ openDetail(r.id, true); });
+      }).catch(fail).then(function(){ save.disabled = false; });
+    }});
+    var del = confirmBtn('Delete request', 'Tap again to delete', function(){
+      return call('api_delete', auth(), r.id).then(function(res){
+        if (!res || !res.ok) throw new Error('refused');
+        $('detail').close(); toast('Request deleted.'); return refresh();
+      });
+    });
+    return h('div', {class:'desk'},
+      h('h3', {text:'Tour desk'}),
+      h('div', {class:'grid2'},
+        f('d-status', 'Status', status),
+        h('div', {class:'field'}, h('span', {class:'lbl', text:'Shortcut'}), h('button', {type:'button', class:'btn', text:'Book as sent', onclick:function(){
+          $('d-status').value = 'booked'; if (price != null) $('d-booked-price').value = String(price);
+        }})),
+        f('d-alt-price', 'Best alternative price', h('div', {class:'money'}, inp('d-alt-price', r.altPrice, {inputmode:'decimal', maxlength:'9'}))),
+        f('d-booked-price', 'Booked price', h('div', {class:'money'}, inp('d-booked-price', r.bookedPrice, {inputmode:'decimal', maxlength:'9'}))),
+        h('div', {class:'field wide'}, h('label', {for:'d-alt-details', text:'Alternative flight'}), inp('d-alt-details', r.altDetails, {maxlength:'200', placeholder:'Delta 2210, 8:05a to 11:30a, nonstop'})),
+        h('div', {class:'field wide'}, h('label', {for:'d-alt-link', text:'Link to the alternative'}), inp('d-alt-link', r.altLink, {type:'url', maxlength:'2000'})),
+        f('d-conf', 'Confirmation code', inp('d-conf', r.confirmation, {class:'inp iata', maxlength:'20'})),
+        h('div', {class:'field wide'}, h('label', {for:'d-note', text:'Note to ' + (str(r.traveler, 60) || 'the traveler')}), note)),
+      h('div', {class:'row'}, save, del));
+  }
+  var alt = numOrNull(r.altPrice), booked = numOrNull(r.bookedPrice), altUrl = safeUrl(r.altLink), bits = [];
+  if (alt != null || r.altDetails) bits.push(h('p', null, h('span', {class:'lbl', text:'Alternative from Q'}), ' ', [money(alt), str(r.altDetails, 200)].filter(Boolean).join(', ')));
+  if (altUrl) bits.push(h('p', null, h('a', {class:'link', href:altUrl, target:'_blank', rel:'noopener noreferrer', text:'Open the alternative (' + host(altUrl) + ')'})));
+  if (st === 'booked') bits.push(h('p', null, h('span', {class:'lbl', text:'Booked'}), ' ', [money(booked), r.confirmation ? 'confirmation ' + str(r.confirmation, 20) : ''].filter(Boolean).join(', ') || 'Details to come'));
+  if (r.note) bits.push(h('p', null, h('span', {class:'lbl', text:'From Q'}), ' ', str(r.note, 600)));
+  if (!bits.length) bits.push(h('p', {class:'help', text: r.sample ? 'Sample request. Nothing here is saved.' : 'Waiting on Q to review. Updates show up here. To change this request, send a new one and tell Q.'}));
+  return h('div', {class:'desk'}, h('h3', {text:'Tour desk'}), bits);
+}
+
+/* ---------- render + data ---------- */
+var queued = false;
+function renderAll(){
+  if (queued) return; queued = true;
+  requestAnimationFrame(function(){
+    queued = false;
+    renderShell(); renderCrewChips(); renderShowOptions(); renderMine(); renderBoard();
+  });
+}
+function refresh(){
+  if (!GAS){ S.conn = 'offline'; renderAll(); return Promise.resolve(); }
+  return call('api_state', auth()).then(function(st){
+    if (!st || !st.ok){ S.conn = 'locked'; renderAll(); return; }
+    var first = !S.loaded;
+    S.conn = 'live'; S.loaded = true; S.isTM = !!st.isTM;
+    if (typeof st.party === 'string' && st.party) $('party').textContent = st.party.slice(0, 80);
+    S.crew = st.crew || []; S.shows = st.shows || []; S.requests = st.requests || []; S.thumbs = st.thumbs || {}; S.links = st.links || null;
+    if (first && S.isTM && !S.touched) setTab('board');
+    renderAll();
+    var dlg = $('detail');
+    if (dlg.open && dlg.dataset.id && !(S.isTM && $('d-status'))) openDetail(dlg.dataset.id, true);
+  }).catch(function(){
+    if (!S.loaded){ S.conn = 'down'; renderAll(); }
+  });
+}
+function start(){
+  setTab('request');
+  document.querySelectorAll('.tab').forEach(function(b){ b.addEventListener('click', function(){ setTab(b.dataset.tab, true); }); });
+  document.querySelectorAll('[data-copy]').forEach(function(b){ b.addEventListener('click', function(){ copyFrom(b.dataset.copy); }); });
+  $('req-form').addEventListener('submit', submitForm);
+  $('req-form').addEventListener('input', function(){ S.touched = true; $('f-error').hidden = true; });
+  $('f-show').addEventListener('change', renderShowHint);
+  ['f-from','f-to'].forEach(function(id){ $(id).addEventListener('input', function(e){ e.target.value = code(e.target.value); }); });
+  document.querySelectorAll('input[name="trip"]').forEach(function(x){ x.addEventListener('change', function(){ $('f-return-wrap').hidden = $('f-trip-oneway').checked; }); });
+  $('f-files').addEventListener('change', function(e){ addFiles(e.target.files); e.target.value = ''; });
+  var drop = $('drop');
+  drop.addEventListener('dragover', function(e){ e.preventDefault(); drop.classList.add('over'); });
+  drop.addEventListener('dragleave', function(){ drop.classList.remove('over'); });
+  drop.addEventListener('drop', function(e){ e.preventDefault(); drop.classList.remove('over'); addFiles(e.dataTransfer && e.dataTransfer.files); });
+  document.addEventListener('paste', function(e){
+    if (S.tab !== 'request' || !$('gate').hidden || !e.clipboardData) return;
+    var files = Array.prototype.filter.call(e.clipboardData.files || [], function(f){ return /^image\//.test(f.type); });
+    if (files.length){ e.preventDefault(); addFiles(files); }
+  });
+  $('flt-show').addEventListener('change', function(e){ S.filter.show = e.target.value; renderBoard(); });
+  $('flt-traveler').addEventListener('change', function(e){ S.filter.traveler = e.target.value; renderBoard(); });
+  var dlg = $('detail');
+  dlg.addEventListener('click', function(e){ if (e.target === dlg) dlg.close(); });
+
+  $('lock-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    var v = $('lock-code').value.replace(/[^A-Za-z0-9_-]/g, ''), err = $('lock-err'), btn = $('lock-btn');
+    if (!v) return;
+    S.k = v; btn.disabled = true; err.hidden = true;
+    refresh().then(function(){
+      btn.disabled = false;
+      if (S.conn === 'live') LS.set('fd.k', v);
+      else { err.hidden = false; err.textContent = 'That code did not work. Check the message Q sent and try again.'; }
+    });
+  });
+  renderAll();
+  refresh();
+  setInterval(function(){ if (document.visibilityState === 'visible' && S.conn === 'live') refresh(); }, 60000);
+  document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'visible' && S.conn === 'live') refresh(); });
+}
+start();
+})();
+</script>
+</body>
+</html>

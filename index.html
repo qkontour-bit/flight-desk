@@ -202,7 +202,7 @@ a.link{color:var(--blue);font-weight:600;text-underline-offset:3px;overflow-wrap
 .li .inp.sm:first-child{flex:2 1 150px}
 .li .inp.sm.iata{flex:0 0 5.4em}
 .li .inp.sm:nth-child(3){flex:1 1 96px}
-.li .btn{flex:none}
+.li .btn{flex:none;min-width:6.2em}
 
 /* ---------- detail dialog ---------- */
 dialog{border:0;border-radius:12px;padding:0;background:var(--surface);color:var(--ink);width:min(720px,calc(100% - 24px));max-height:calc(100% - 32px);box-shadow:0 20px 60px rgba(8,24,44,.35)}
@@ -1073,15 +1073,16 @@ function opFail(e){ toast((e && e.why) || 'That did not go through. Check your c
 function renderSetup(){
   if (!S.isTM) return;
   var sl = $('show-list'), cl = $('crew-list');
-  if (!S.shows.length) sl.replaceChildren(h('p', {class:'help', text:'No shows yet. Add the first one below and it appears in the request form.'}));
+  if (!S.shows.length) sl.replaceChildren(h('p', {class:'help', text:'No shows yet. Add the first one above and it appears in the request form.'}));
   else sl.replaceChildren.apply(sl, S.shows.slice().sort(byDate).map(function(s){
     return h('div', {class:'li'},
       h('div', {class:'grow'}, h('div', {class:'t', text:showLabel(s)}),
         h('div', {class:'help', text:[s.venue, s.airport, s.arriveBy].filter(Boolean).join(' \u00b7 ')})),
-      confirmBtn('Remove', 'Tap again to remove', function(){ return op('api_showdel', showKey(s), null, 'Show removed.'); }));
+      confirmBtn('Remove', 'Confirm', function(){ return op('api_showdel', showKey(s), null, 'Show removed.'); }));
   }));
-  if (document.activeElement && cl.contains(document.activeElement)) return; // never rebuild a row someone is typing in
-  if (!S.crew.length){ cl.replaceChildren(h('p', {class:'help', text:'No travelers yet. Add the first one below.'})); return; }
+  var ae = document.activeElement;
+  if (ae && ae.tagName === 'INPUT' && cl.contains(ae)) return; // never rebuild a row someone is typing in
+  if (!S.crew.length){ cl.replaceChildren(h('p', {class:'help', text:'No travelers yet. Add the first one above.'})); return; }
   cl.replaceChildren.apply(cl, S.crew.map(function(c, i){
     var cur = {name:c.name, home:c.home || '', note:c.note || ''};
     var name = h('input', {id:'cl-name-' + i, class:'inp sm', maxlength:'80', value:cur.name, autocomplete:'off', 'aria-label':'Name of traveler ' + (i + 1)});
@@ -1100,7 +1101,7 @@ function renderSetup(){
     }
     [name, home, note].forEach(function(x){ x.addEventListener('change', save); });
     return h('div', {class:'li'}, name, home, note,
-      confirmBtn('Remove', 'Tap again to remove', function(){ return op('api_crewdel', cur.name, null, 'Traveler removed.'); }));
+      confirmBtn('Remove', 'Confirm', function(){ return op('api_crewdel', cur.name, null, 'Traveler removed.'); }));
   }));
 }
 function addCrew(ev){
